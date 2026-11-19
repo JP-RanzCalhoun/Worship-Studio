@@ -90,3 +90,8 @@ juce_add_console_app(PadRender PRODUCT_NAME "PadRender")
 target_sources(PadRender PRIVATE ../spikes/pad/PadRender.cpp)
 target_compile_definitions(PadRender PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
 target_link_libraries(PadRender PRIVATE juce::juce_audio_formats juce::juce_recommended_config_flags)
+
+juce_add_console_app(CleanupRender PRODUCT_NAME "CleanupRender")
+target_sources(CleanupRender PRIVATE ../spikes/cleanup/CleanupRender.cpp)
+target_compile_definitions(CleanupRender PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
+target_link_libraries(CleanupRender PRIVATE juce::juce_audio_formats juce::juce_recommended_config_flags)

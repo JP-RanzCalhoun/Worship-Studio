@@ -54,7 +54,9 @@ export interface Take {
   id: string;
   startSec: number;
   recordedAt: string;
-  tracks?: { label: string; device: string; file: string; seconds: number; glitches: number; gapMs: number; ppm: number; error?: string }[];
+  tracks?: { label: string; device: string; file: string; seconds: number; glitches: number; gapMs: number; ppm: number; error?: string; cleanVocal?: boolean }[];
+  /** recorded without a song: the take is the song */
+  solo?: boolean;
   warning?: string;
   error?: string;
   /** the camera picture was recorded too (video.mp4 or video.webm in the take folder) */
@@ -150,6 +152,9 @@ export const engine = {
   recStatus: () => call<{ recording: boolean; seconds: number }>("recStatus"),
   recTakes: (songId: string) => call<Take[]>("recTakes", songId),
   revealTake: (songId: string, takeId: string) => call("revealTake", songId, takeId),
+  /** Remove the guitar bleed from a take's vocal (about a minute; the original stays). */
+  cleanVocal: (songId: string, takeId: string) => call<{ path: string; guitar_vs_voice_db?: number; used?: boolean }>("cleanVocal", songId, takeId),
+  useCleanVocal: (songId: string, takeId: string, clean: boolean) => call("useCleanVocal", songId, takeId, clean),
   /** solo takes left by a killed app become songs (returns the recovered takes with songId + title) */
   soloRecover: () => call<{ songId: string; title: string; warning?: string }[]>("soloRecover"),
 
@@ -176,6 +181,9 @@ export interface InputCleanupSettings {
   humHz: 50 | 60;
   gate: boolean;
   thresholdDb: number;
+  /** Vocal polish: low cut, auto-leveler (lifts up to `lift` dB when you sing further away), compressor, de-esser, presence. */
+  vocal?: boolean;
+  lift?: number;
 }
 
 export interface MonitorStatus {

@@ -160,8 +160,8 @@ var RecordSession::stopSolo (const var& calibration, double rate)
         t->setProperty ("seconds", st.frames / (double) jmax (1, st.sampleRate));
         t->setProperty ("glitches", st.glitches);
         t->setProperty ("rawMode", st.rawMode);
-        if (cl != nullptr && (cl->hum.load() || cl->gate.load()))
-            t->setProperty ("cleanup", var (String (cl->hum.load() ? "hum filter " : "") + (cl->gate.load() ? "gate " + String (cl->thresholdDb.load(), 0) + " dB" : "")));
+        if (cl != nullptr && (cl->hum.load() || cl->gate.load() || cl->vocal.load()))
+            t->setProperty ("cleanup", var (String (cl->hum.load() ? "hum filter " : "") + (cl->gate.load() ? "gate " + String (cl->thresholdDb.load(), 0) + " dB " : "") + (cl->vocal.load() ? "vocal polish +" + String (cl->lift.load(), 0) + " dB" : "")));
         if (error.isNotEmpty())
             t->setProperty ("error", error);
         glitches += st.glitches;
@@ -241,8 +241,8 @@ var RecordSession::stop (double outputLatencySec, const var& calibration, double
         t->setProperty ("gapMs", 1000.0 * st.gapFrames / jmax (1, st.sampleRate));
         t->setProperty ("ppm", (st.measuredRate() / jmax (1, st.sampleRate) - 1.0) * 1.0e6);
         t->setProperty ("rawMode", st.rawMode);
-        if (cl != nullptr && (cl->hum.load() || cl->gate.load()))
-            t->setProperty ("cleanup", var (String (cl->hum.load() ? "hum filter " : "") + (cl->gate.load() ? "gate " + String (cl->thresholdDb.load(), 0) + " dB" : "")));
+        if (cl != nullptr && (cl->hum.load() || cl->gate.load() || cl->vocal.load()))
+            t->setProperty ("cleanup", var (String (cl->hum.load() ? "hum filter " : "") + (cl->gate.load() ? "gate " + String (cl->thresholdDb.load(), 0) + " dB " : "") + (cl->vocal.load() ? "vocal polish +" + String (cl->lift.load(), 0) + " dB" : "")));
         t->setProperty ("calibrationMs", cal * 1000.0);
         if (error.isNotEmpty())
             t->setProperty ("error", error);

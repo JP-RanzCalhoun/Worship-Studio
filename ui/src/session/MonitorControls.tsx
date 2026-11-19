@@ -43,7 +43,7 @@ const MON_MODE = "wsa.monitorOutputMode2"; // v2: default changed to shared low 
 /** Buzz cleanup per input (hum filter + gate): on what you hear and on the lined-up takes; raw files stay dry. */
 const CLEANUP = "wsa.inputCleanup";
 type CleanPrefs = Record<"Guitar" | "Vocal", InputCleanupSettings>;
-const CLEAN_DEFAULT: InputCleanupSettings = { hum: false, humHz: 60, gate: false, thresholdDb: -50 };
+const CLEAN_DEFAULT: InputCleanupSettings = { hum: false, humHz: 60, gate: false, thresholdDb: -50, vocal: false, lift: 9 };
 
 /** Live monitoring state for both inputs. `row(label)` goes in that input's card; `output` is the shared output
  *  settings (mode, YouTube sound). One hook per screen: it starts and stops the monitor streams. */
@@ -200,6 +200,20 @@ export function useMonitorControls({ slots, outputName }: { slots: InputSlot[]; 
                 <input type="range" min={-80} max={-20} step={1} value={clean[label].thresholdDb} aria-label={`${label} gate threshold`}
                   onChange={(e) => updateClean(label, { thresholdDb: +e.target.value })} />
                 <span className="muted">{clean[label].thresholdDb} dB</span>
+              </>
+            )}
+            {label === "Vocal" && (
+              <label className="checkbox-line" title="Low cut, an auto-leveler that lifts your voice when you lean away, gentle compression, de-esser and presence. On what you hear and on the take; the raw file stays untouched.">
+                <input type="checkbox" checked={!!clean[label].vocal} onChange={(e) => updateClean(label, { vocal: e.target.checked })} />
+                Vocal polish
+              </label>
+            )}
+            {label === "Vocal" && clean[label].vocal && (
+              <>
+                <span className="muted">Distance lift</span>
+                <input type="range" min={0} max={12} step={1} value={clean[label].lift ?? 9} aria-label="Vocal distance lift"
+                  onChange={(e) => updateClean(label, { lift: +e.target.value })} />
+                <span className="muted">+{clean[label].lift ?? 9} dB</span>
               </>
             )}
             <Button size="sm" variant="quiet" disabled={!p.on || learning !== null} onClick={() => void learnNoise(label)}

@@ -125,6 +125,8 @@ private:
     juce::File soloDir;     // its temporary folder in the library (.solo-<time>)
     /** Background: lines up a solo take, mixes it and imports it as a new song (returns the take + songId). */
     juce::var finishSolo (const juce::File& dir);
+    /** Point a take's Vocal track at Vocal.clean.wav (true) or back at the original (false). */
+    bool useCleanVocal (const juce::File& takeDir, bool clean);
     /** Mixes a lined-up solo take, imports it as a new song and moves the take into it (returns the take + songId). */
     juce::var importSolo (const juce::File& dir, const juce::File& takeDir, juce::var take, const juce::String& title);
     /** Turns solo takes left by a killed app (".solo-*" folders) into songs. */

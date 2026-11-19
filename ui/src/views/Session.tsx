@@ -202,6 +202,7 @@ export function Session({
   busyRef.current = busy;
   const [takes, setTakes] = useState<Take[]>([]);
   const [recError, setRecError] = useState("");
+  const [cleaning, setCleaning] = useState<string | null>(null); // take id whose vocal is being cleaned
   // Live monitoring shows which output it plays through
   const [outputName, setOutputName] = useState("");
 
@@ -712,6 +713,41 @@ export function Session({
                     {song.activeTake === t.id ? "✓ In mix" : "▶ Mix"}
                   </Button>
                 )}
+                {!t.error && (t.tracks ?? []).some((x) => x.label === "Vocal") && (() => {
+                  const cleaned = (t.tracks ?? []).find((x) => x.label === "Vocal")?.cleanVocal;
+                  const working = cleaning === t.id;
+                  return cleaned !== undefined ? (
+                    <Button size="sm" variant="quiet" pressed={cleaned}
+                      title="Vocal with the guitar bleed removed. Click to switch between the cleaned and the original vocal."
+                      onClick={async () => {
+                        await engine.useCleanVocal(project.id, t.id, !cleaned);
+                        refreshTakes();
+                        await p.reload();
+                      }}>
+                      {cleaned ? "✓ Clean vocal" : "Original vocal"}
+                    </Button>
+                  ) : (
+                    <Button size="sm" variant="quiet" disabled={cleaning !== null || rec.on}
+                      title="Remove the guitar that leaked into the vocal mic (about a minute). The original vocal is kept."
+                      onClick={async () => {
+                        setCleaning(t.id);
+                        try {
+                          await engine.cleanVocal(project.id, t.id);
+                          // a solo recording plays from its take; a song's take is heard when it is in the mix
+                          if (t.solo || song.activeTake === t.id) update((s) => ({ ...s, activeTake: t.id }));
+                          toast({ tone: "ok", text: `${t.id.replace("take-", "Take ")}: guitar bleed removed from the vocal. The original is kept.` });
+                          refreshTakes();
+                          await p.reload();
+                        } catch (e: any) {
+                          toast({ tone: "error", text: String(e.message ?? e) });
+                        } finally {
+                          setCleaning(null);
+                        }
+                      }}>
+                      {working ? "Cleaning… about a minute" : "Clean vocal"}
+                    </Button>
+                  );
+                })()}
                 <Button size="sm" variant="quiet" onClick={() => engine.revealTake(project.id, t.id)} title="Show the files" aria-label={`Show the files of ${t.id.replace("take-", "take ")}`}>
                   📁
                 </Button>

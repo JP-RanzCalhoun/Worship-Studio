@@ -12,6 +12,7 @@ Commands:
   python -m wsa.cli info
   python -m wsa.cli analyze --source SONG --project DIR [--quality fast|balanced|best] [--device auto|cpu|cuda]
   python -m wsa.cli tts --out DIR --text "Verse 1" --text "1" ...
+  python -m wsa.cli clean-vocal --input TAKE/Vocal.wav --out TAKE/Vocal.clean.wav [--device auto|cpu|cuda]
 """
 
 from __future__ import annotations
@@ -114,6 +115,44 @@ def cmd_tts(args):
     emit(type="result", files=rel, leads=lead)
 
 
+def cmd_clean_vocal(args):
+    """Guitar bleed out of a vocal take: the stem splitter keeps only the voice. The input is never changed;
+    the result is written next to it (same channels and rate) only when complete."""
+    import numpy as np
+    import soundfile as sf
+
+    from .separate import separate
+
+    src, out = Path(args.input), Path(args.out)
+    if not src.is_file():
+        raise FileNotFoundError(f"Vocal take not found: {src}")
+    info = sf.info(str(src))
+    work = out.parent / f".work-clean-{os.getpid()}"
+    shutil.rmtree(work, ignore_errors=True)
+    work.mkdir(parents=True)
+    t0 = time.perf_counter()
+    try:
+        progress("separating", 2, "Removing the guitar from the vocal")
+        stems = separate(src, work / "stems", "fast", args.device, info.duration, progress)
+        voc = next((s for s in stems if s["id"] == "vocals"), None)
+        if voc is None:
+            raise RuntimeError("The splitter returned no vocal stem.")
+        y, sr = sf.read(voc["path"], dtype="float32", always_2d=True)
+        if info.channels == 1 and y.shape[1] > 1:
+            y = y.mean(axis=1, keepdims=True)  # back to mono like the take
+        # for the report: how loud the guitar that was taken out is, next to the voice that was kept
+        db = lambda a: 20 * np.log10(np.sqrt(np.mean(a**2)) + 1e-12)
+        gtr = next((s for s in stems if s["id"] == "guitar"), None)
+        g_db = db(sf.read(gtr["path"], dtype="float32", always_2d=True)[0]) if gtr else None
+        tmp = out.with_suffix(".tmp.wav")
+        sf.write(str(tmp), y, sr, subtype="FLOAT")
+        os.replace(tmp, out)
+        progress("done", 100, "Vocal cleaned")
+        emit(type="result", path=str(out), guitar_vs_voice_db=None if g_db is None else round(float(g_db - db(y)), 1), elapsed_s=round(time.perf_counter() - t0, 1))
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+
+
 def main(argv=None):
     # The app kills this whole process tree on Cancel (child tools included), so tell it our process id first.
     emit(type="pid", pid=os.getpid())
@@ -131,9 +170,13 @@ def main(argv=None):
     t.add_argument("--text", action="append", required=True)
     t.add_argument("--rate", type=int, default=1)
     t.add_argument("--voice", default=None)
+    c = sub.add_parser("clean-vocal")
+    c.add_argument("--input", required=True)
+    c.add_argument("--out", required=True)
+    c.add_argument("--device", default="auto", choices=["auto", "cpu", "cuda"])
     args = ap.parse_args(argv)
     try:
-        {"info": cmd_info, "analyze": cmd_analyze, "tts": cmd_tts}[args.cmd](args)
+        {"info": cmd_info, "analyze": cmd_analyze, "tts": cmd_tts, "clean-vocal": cmd_clean_vocal}[args.cmd](args)
     except Exception as e:
         emit(type="error", message=f"{type(e).__name__}: {e}", trace=traceback.format_exc(limit=5))
         sys.exit(1)

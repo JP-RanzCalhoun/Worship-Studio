@@ -1,8 +1,9 @@
 # Handoff — Worship Studio (for the next Claude session)
 
-Updated 2026-11-19 by the Claude session that did the smoke test, monitoring, solo, pads, camera looks, the guitar
-buzz cleanup and the Stage light UI/UX revamp (§3b). Read this first, then `docs/ROADMAP.md` (the checklist and decision log)
-and `docs/AUDIT-2026-11-17.md`.
+Updated 2026-11-19 (late) by the Claude session that did the smoke test, monitoring, solo, pads, camera looks, the
+guitar buzz cleanup, the Stage light UI/UX revamp, the public GitHub copy and the PD200X vocal work (§3b, §3c).
+Read this first, then §4b (outside repo reviews and the agreed next order), `docs/ROADMAP.md` (checklist and decision
+log) and `docs/AUDIT-2026-11-17.md`.
 
 ---
 
@@ -51,8 +52,16 @@ Worship Studio.exe (JUCE 9.0.3, C++) — app/src
 ├─ BrowserCapture: process loopback of the WebView. Learn = to a WAV; pageListen = listen-only into a MonitorTap
 │    (YouTube through the app in exclusive mode)
 ├─ InputCleanup (header-only): per input, hum notches (60/50 Hz + 7 harmonics, Q 40) and a no-delay noise gate
-│    (0.5 ms open, 80 ms hold, 150 ms close, −40 dB floor). Live on the monitor copy and on the lined-up take; the raw
-│    file stays dry. Native `inputCleanup(label, {hum, humHz, gate, thresholdDb})`, `inputCleanupPeak(label)` (dB)
+│    (0.5 ms open, 80 ms hold, 150 ms close, −40 dB floor), then optional **Vocal polish**: 90 Hz low cut, auto-leveler
+│    ("distance lift", up to `lift` dB, moves only while singing above gate threshold + 6 dB), 3:1 compressor at
+│    −18 dB (+2 dB make-up), 6 kHz de-esser (up to −8 dB), +2.5 dB at 4 kHz, soft ceiling −1 dBFS. No look-ahead.
+│    Live on the monitor copy and on the lined-up take; the raw file stays dry. Native `inputCleanup(label, {hum,
+│    humHz, gate, thresholdDb, vocal, lift})`, `inputCleanupPeak(label)` (dB). Offline check: `CleanupRender` (§6)
+├─ Clean vocal: sidecar `clean-vocal` (htdemucs_6s, keeps the vocal stem) → `takes/<take>/Vocal.clean.wav`; native
+│    `cleanVocal(song, take)` (≈ 70 s for 4.5 min on the GPU) and `useCleanVocal(song, take, on)` switch the take's
+│    Vocal track (`file` / `fileOriginal` / `cleanVocal` in take.json). Vocal.wav and raw/ are never changed.
+│    Library::tracks: a **solo** song (take.json `"solo": true`) with an activeTake plays its take tracks only (the
+│    take is the song), so the cleaned vocal is what is heard and exported
 ├─ PadSynth (header-only): root+5th+octave drone, wavetable, breathing low-pass, juce::Reverb, key crossfade
 ├─ Library (Documents\WorshipStudio\Songs), Exporter, Jobs (Python sidecar)
 └─ analysis/ (Python 3.12): audio-separator + Demucs, beat_this, own chords (templates + Viterbi), sections, cues
@@ -92,11 +101,30 @@ from `@fontsource-variable/inter`). Mockups and design notes: `.taste-skill/mock
 | `e89fc9f` | **Revamp 3:** confirms and Import chart on `<dialog>`; Queue and Projector on native popovers |
 | `3cf9f37` | **Revamp 4:** shortcuts R (record / stop), G / V (hear guitar / vocal); fix: shortcuts paused only while a dialog or popover is open |
 | `0ce56f8` | **Revamp 5:** light theme in the same look (warm paper, deeper amber #a86a12, black pills) |
+| `0580d72` · `62e354c` · `5084c46` | Docs for the revamp; README for reviewers; public GitHub copy + `tools/dev/publish_public.py` (§6b) |
+| `5297e42` | **Vocal polish** (Vocal card: switch + "Distance lift" 0–12 dB) and `spikes/cleanup/CleanupRender` |
+| `8c13039` | **Clean vocal** (take list: "Clean vocal", then a Clean / Original switch); solo songs play from their take |
 
 Verified by JP: the buzz is gone with hum filter + learned gate (E2 noise peaked about −32 dB with the hum filter
 alone: partly broadband, so the gate does the work); the new Session layout with a YouTube video; R / G / V; light
 theme. Stage light rules: amber (#f2b33d dark) only on live data (current chord, playhead, meters); primary and "on"
 controls are inverted pills; record is the one red; no borders on cards, lightness steps instead.
+
+### 3c. PD200X vocal while playing guitar (2026-11-19)
+JP's ask: a better vocal from the PD200X (dynamic, cardioid) when he sits a little away from it while playing, done
+the way studios do acoustic covers. What was done, in order of effect:
+1. **Mic setup (advice, in the Maono app — JP to apply):** gain from 100 to about 60–70 and sing at 10–25 cm; EQ from
+   "Deep" to **Flat** (Deep boosts lows and cuts highs: muffled); noise cancellation 17 → **0** (use the app's gate +
+   Learn noise); Maono compressor **off** (the app compresses); Maono limiter **on at −3 dB** (safety before USB);
+   AI noise reduction and Hear-Self **off** (already). Aim the back of the mic at the guitar.
+2. **Vocal polish** (`5297e42`), live. Offline test on JP's solo take of 2026-11-17 19:50: first version clipped
+   (14 samples) and raised the noise 8 dB; fixed (ceiling, voice-only leveling) → peak −1.1 dBTP, noise +3 dB vs the
+   gate alone. JP: "better".
+3. **Clean vocal** (`8c13039`), after the take. The 19:50 vocal track was measured as mostly acoustic guitar with
+   singing on top (earshot: acoustic guitar z 3.2); cleaned it reads as a-cappella singing, noise floor −88 dB.
+   Tested on a temporary copy (since moved to the Recycle Bin). JP: "sounds clean".
+Physics to remember: each doubling of distance costs ~6 dB of voice while bleed and room stay; software can level the
+voice but cannot separate it live — position and gain matter most.
 
 ### Verified live on 2026-11-17
 - Learn this song end to end (ads waited out, saved, analysed in ~30 s); autoplay pause after learning.
@@ -107,7 +135,8 @@ controls are inverted pills; record is the one red; no borders on cards, lightne
 - Camera looks + auto colour fix on JP's camera (pink/purple cast → neutral), output 1920×1080 @ 60.
 
 ### Built but NOT verified by JP yet
-- **Pads** (never heard by JP). **Solo take** (needs the E2 plugged in; never recorded).
+- **Pads** (never confirmed by ear). Solo takes WERE recorded on 2026-11-17 (Library: "Solo 2026-11-17 …", one with
+  camera video), but the clean-vocal switch back to "Original vocal" and its progress text were not seen in the app.
 - **Learn this song after the freeze fixes** (YouTube player API seek, freeze nudge, mid-song jump cancels): the last
   two attempts before the fixes failed because YouTube froze; not retested since.
 - Takes with the camera as MP4 (recorder path changed from WebM), and with a look on.
@@ -130,8 +159,49 @@ controls are inverted pills; record is the one red; no borders on cards, lightne
 
 ---
 
+## 4b. Outside repo reviews and the agreed audio order (2026-11-19)
+Both reviews are in Slack `#claude-chatgpt`. Licences below were checked on GitHub on 2026-11-19.
+
+**Muse, 2026-11-17 (14 repos).** In the app: audio-separator, librosa, tonal, beat_this, Basic Pitch (+ device IDs).
+Not adopted: MSST / BS-RoFormer 53-stem (checkpoint licences unclear), music21 (later), aubio (GPL-3), Rubber Band
+(GPL-2), whisper.cpp (MIT; lyrics, later), miniaudio (reference only), Audacity (patterns only). None of the 14 target
+recording or vocal quality. Muse's warning stands: Demucs weights are research-only — do not bundle them for release.
+
+**ChatGPT, 2026-11-19 ("real studio quality", acoustic + vocal chains; JP asked "Codex", the reply is signed
+[ChatGPT]).** Its chain advice is standard practice and agreed (guitar: HPF 65–85 Hz, dynamic cut 180–280 Hz, 2:1 with
+20–40 ms attack, short room + low plate; vocal: HPF, mud cut 180–350 Hz, de-ess 5–9 kHz, two light compressors,
+plate/chamber + tempo delay ducked under the voice, optional transparent pitch correction, never on by default;
+loudness-matched A/B; no artist-named presets). Its repo facts were partly wrong:
+
+| Repo | ChatGPT said | Checked | Use |
+|---|---|---|---|
+| airwindows/airwindows | verify | **MIT**, active | ✓ best source for reverb, console/tape colour, de-ess DSP |
+| Signalsmith Stretch | keep | MIT, active | ✓ in the app; also the engine for gentle pitch correction |
+| Tracktion/pluginval | adopt | GPL-3 | ✓ as a separate test tool only (never linked) |
+| michaelwillis/dragonfly-reverb | GPL-3 | GPL-3, active | ⚠ reference only while the app is closed-source |
+| Chowdhury-DSP/CHOW | "BSD-3" | **GPL-3, last push 2019** | ✗ |
+| Audbol/audbol-plugins | verify | **no licence, 1 star** | ✗ |
+| x42 fat1 (auto-tune) | — | GPL-2 | ✗ (build our own instead) |
+| Matchering (reference mastering) | — | GPL-3 | ⚠ only as a separate sidecar process |
+
+What ChatGPT missed and Claude proposed: (a) **gentle pitch correction** of our own (tuner pitch detection + Signalsmith
+shift, offline on vocal takes, strength / speed / key, off by default); (b) a **guitar body IR** made from JP's own
+Ibanez (record E2 pickup + a mic at once, deconvolve) instead of branded Martin IRs, plus tone presets in the
+D-28 / 000-28 / 000-18 *direction* (fuller lows, scooped mids, sparkle) — software cannot make it a Martin;
+(c) **mastering**: LUFS / true-peak meters, a true-peak limiter, optional reference matching to a worship track.
+
+**Agreed next order for sound (JP has not picked the first one yet):**
+1. **Reverb + tempo delay** sends (Airwindows-based or own), ducked under the dry signal, on monitor and takes.
+2. **Guitar body sound** from JP's own guitar + tone presets.
+3. **Gentle tuning** on vocal takes.
+4. **Mastering** chain + meters (+ optional reference match).
+Rules from both reviews: keep the live chain no-look-ahead, keep raw takes, A/B at matched loudness, 48 kHz throughout,
+keep GPL/AGPL out of the binary until the licence is decided, no artist IRs/presets/weights without permission.
+
 ## 4. What to do next
-0. UI follow-ups if JP asks: a song/camera width handle in the new grid (splitters are off there); waveform peaks not
+0. Sound: §4b order (ask JP which first). Not yet published: GitHub is at the README/publish-script snapshot; the vocal
+   polish and clean vocal commits are local only until JP says "update GitHub".
+0b. UI follow-ups if JP asks: a song/camera width handle in the new grid (splitters are off there); waveform peaks not
    drawn for Tanging Kailangan in the timeline (check whether that predates the revamp).
 1. With JP: plug in the E2 → solo take with camera and a look → listen; pads by ear; Learn this song retest.
 2. Phase B leftovers: device IDs instead of names, Windows-effects check (Maono/intelliGo "AI noise" must be off),
@@ -144,7 +214,9 @@ Process-loopback capture, never downloading; takes recorded dry and lined up aft
 (shared low latency default, exclusive for recording; YouTube through the app in exclusive); no play-along
 calibration (JP: inaccurate); chart-first chords; camera MP4 H.264; looks baked into recordings; pads made in code;
 buzz cleanup in software, raw takes kept dry; Stage light look (mockup A over B "Console"); UI built from the
-modern-web-guidance guides, browser features of current Chromium used without fallbacks.
+modern-web-guidance guides, browser features of current Chromium used without fallbacks; vocal processing = no
+look-ahead live chain + offline repair (clean vocal) with the original always kept; public GitHub = cleaned
+`public` branch only.
 
 ## 6. Build, run, test
 ```
@@ -156,7 +228,10 @@ app\build\WorshipStudio_artefacts\Release\"Worship Studio.exe"
 - Dev helpers in `tools/dev/` (cdp.mjs eval/shot, call.js `__call(...)`, screen.ps1). cdp.mjs takes the first app page:
   when the camera pop-out is open it may hit that window — close it first (`__call('projectorClose')`).
 - Useful native calls: `monitorStatus` (output mode, per-input delay/dropouts, page audio), `devices`, `recInputs`,
-  `siteVideo('state')`, `listSongs`.
+  `siteVideo('state')`, `listSongs`, `inputCleanup`, `cleanVocal`, `useCleanVocal`.
+- Offline DSP check: `cmake --build app/build --config Release --target CleanupRender`, then
+  `CleanupRender in.wav out.wav [--hum] [--gate dB] [--vocal liftDb]`; measure with the earshot tools (no new mic audio).
+- Sidecar by hand: `analysis/.venv/Scripts/python.exe -u analysis/run_wsa.py clean-vocal --input X.wav --out Y.wav`.
 - Files are CRLF in the working copy; scripted edits must keep CRLF (several edits today hit mixed endings).
 - Test song: `tanging-kailangan-acoustic-victory-worship-victo` (JP's; never delete).
 
@@ -170,6 +245,7 @@ app\build\WorshipStudio_artefacts\Release\"Worship Studio.exe"
 - Keep out of the repo: song lyrics, recordings, model weights, personal paths. The mockups use placeholder lyrics.
 
 ## 7. Waiting for JP
-Listen to the pads · solo take with the E2 · Learn retest · turn off Maono/intelliGo capture effects · delete the
+Apply the Maono settings (§3c) · pick the first sound step (§4b) · say "update GitHub" when Muse should see the vocal
+work · listen to the pads · Learn retest · delete the
 two broken test songs and the "WE PLAY YOU SING" zips himself · licensing before any public release (JUCE AGPL,
 Demucs weights, YouTube terms, H.264 for distribution).

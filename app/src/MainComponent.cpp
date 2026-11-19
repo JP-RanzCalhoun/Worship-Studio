@@ -232,6 +232,26 @@ void MainComponent::pushMonitors()
     engine.setMonitors (std::move (taps));
 }
 
+bool MainComponent::useCleanVocal (const File& takeDir, bool clean)
+{
+    auto jsonFile = takeDir.getChildFile ("take.json");
+    auto info = JSON::parse (jsonFile);
+    bool changed = false;
+    if (auto* tracks = info["tracks"].getArray())
+        for (auto& t : *tracks)
+            if (auto* o = t.getDynamicObject(); o != nullptr && t["label"].toString() == "Vocal")
+            {
+                const auto original = t.hasProperty ("fileOriginal") ? t["fileOriginal"].toString() : t["file"].toString();
+                if (clean && ! takeDir.getChildFile ("Vocal.clean.wav").existsAsFile())
+                    return false;
+                o->setProperty ("fileOriginal", original);
+                o->setProperty ("file", clean ? String ("Vocal.clean.wav") : original);
+                o->setProperty ("cleanVocal", clean);
+                changed = true;
+            }
+    return changed && jsonFile.replaceWithText (JSON::toString (info));
+}
+
 var MainComponent::finishSolo (const File& dir)
 {
     // 1. Line the inputs up with each other (48 kHz files).
@@ -1477,6 +1497,30 @@ WebBrowserComponent::Options MainComponent::buildOptions()
             analyzeJobDirs[id] = dir;
     });
     fn ("cancelJob", [this] (const Args& a, Done d) { jobs.cancel ((int) a[0]); d (ok()); });
+    // Guitar bleed out of a take's vocal (songId, takeId): the stem splitter keeps the voice in Vocal.clean.wav, and
+    // the take then plays it. The original Vocal.wav (and raw/) is never changed; useCleanVocal switches back.
+    fn ("cleanVocal", [this] (const Args& a, Done d) {
+        auto takeDir = library.songDir (a[0].toString()).getChildFile ("takes").getChildFile (File::createLegalFileName (a[1].toString()));
+        auto info = JSON::parse (takeDir.getChildFile ("take.json"));
+        String original;
+        if (auto* tracks = info["tracks"].getArray())
+            for (auto& t : *tracks)
+                if (t["label"].toString() == "Vocal")
+                    original = t.hasProperty ("fileOriginal") ? t["fileOriginal"].toString() : t["file"].toString();
+        if (original.isEmpty() || ! takeDir.getChildFile (original).existsAsFile())
+            return d (err ("This take has no vocal track to clean."));
+        auto out = takeDir.getChildFile ("Vocal.clean.wav");
+        StringArray args { "clean-vocal", "--input", takeDir.getChildFile (original).getFullPathName(), "--out", out.getFullPathName() };
+        runJob (args, [this, d, takeDir] (var result) {
+            if (result["error"].toString().isEmpty() && useCleanVocal (takeDir, true))
+                result.getDynamicObject()->setProperty ("used", true);
+            d (result);
+        }, true);
+    });
+    fn ("useCleanVocal", [this] (const Args& a, Done d) {
+        auto takeDir = library.songDir (a[0].toString()).getChildFile ("takes").getChildFile (File::createLegalFileName (a[1].toString()));
+        d (useCleanVocal (takeDir, (bool) a[2]) ? ok() : err ("No cleaned vocal for this take yet."));
+    });
     fn ("renderCues", [this] (const Args& a, Done d) {
         StringArray args { "tts", "--out", library.songDir (a[0].toString()).getChildFile ("cues").getFullPathName() };
         if (auto* texts = a[1].getArray())

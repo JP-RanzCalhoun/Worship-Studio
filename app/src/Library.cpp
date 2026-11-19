@@ -242,6 +242,7 @@ std::vector<std::tuple<String, String, File>> Library::tracksFor (const String& 
         auto takeDir = dir.getChildFile ("takes").getChildFile (File::createLegalFileName (take));
         auto info = JSON::parse (takeDir.getChildFile ("take.json"));
         const auto number = take.fromFirstOccurrenceOf ("take-", false, false).getIntValue();
+        const auto before = out.size();
         if (auto* tracks = info["tracks"].getArray())
             for (auto& t : *tracks)
             {
@@ -249,6 +250,10 @@ std::vector<std::tuple<String, String, File>> Library::tracksFor (const String& 
                 if (t["file"].toString().isNotEmpty() && f.existsAsFile() && ! t.hasProperty ("error"))
                     out.emplace_back ("take:" + t["label"].toString(), t["label"].toString() + " (take " + String (number) + ")", f);
             }
+        // A solo recording: its take IS the song (the mix is only a mixdown of it). Play the take's tracks alone, so a
+        // cleaned vocal (or any later change to the take) is what you hear and export.
+        if ((bool) info["solo"] && out.size() > before)
+            out.erase (out.begin(), out.begin() + (std::ptrdiff_t) before);
     }
     return out;
 }
