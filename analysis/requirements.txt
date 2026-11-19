@@ -1,0 +1,26 @@
+# Install PyTorch first, with CUDA (NVIDIA GPU) or CPU-only:
+#   GPU: pip install torch==2.11.0 torchaudio==2.11.0 torchvision==0.26.0 --index-url https://download.pytorch.org/whl/cu128
+#   CPU: pip install torch==2.11.0 torchaudio==2.11.0 torchvision==0.26.0 --index-url https://download.pytorch.org/whl/cpu
+# Then: pip install -r requirements.txt
+# Note: audio-separator may try to replace torch with a CPU build; re-run the torch line above if `torch.cuda.is_available()` is False.
+
+audio-separator==0.47.0
+demucs==4.1.0
+audioread==3.1.0
+librosa==1.0.0
+numpy==2.5.3
+scipy==1.18.1
+soundfile==0.14.0
+psutil==7.2.2
+nvidia-ml-py==13.615.71
+beat-this==1.1.0  # PyPI release (was a main.zip snapshot: a new upstream commit broke fresh installs)
+mir_eval==0.8.2
+pretty_midi==0.2.11.post0
+mido==1.3.3
+importlib_resources==7.1.0
+
+# Basic Pitch (Spotify, Apache-2.0) hears the notes the chords are named from. Install it SEPARATELY, without its
+# dependencies: it asks for tensorflow<2.15.1, which has no Python 3.12 build, and we only use its ONNX model
+# (run by onnxruntime, already installed by audio-separator). The four packages above are the parts it does need.
+#   pip install basic-pitch==0.4.0 --no-deps
+# Without it the analysis still runs: chords come from the spectrum only and analysis.json carries a warning.

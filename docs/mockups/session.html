@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Session Mockup</title>
+<style>
+  /* Same tokens as ui/src/styles/tokens.css (dark theme) */
+  :root {
+    --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 20px; --s6: 24px;
+    --font: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+    --font-display: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+    --r-sm: 6px; --r-md: 10px;
+    --role-vocals: #e0708a; --role-guitar: #e3a344; --role-keys: #a68be8; --role-bass: #5cbf8a;
+    --role-drums: #4fb7cf; --role-other: #9097a6; --role-click: #8496b3; --role-cues: #4dbfae;
+    --bg: #121418; --surface-1: #181b21; --surface-2: #1f232b; --surface-3: #282d37;
+    --line: #2f3541; --line-strong: #434b5a;
+    --text: #e8eaef; --text-2: #b4bac6; --text-3: #868d9b;
+    --accent: #5b9bff; --accent-ink: #0b1220; --accent-soft: rgba(91, 155, 255, 0.14);
+    --ok: #46c08a; --warn: #f0b443; --danger: #ef6a6e;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 14px/1.4 var(--font); }
+  button { font: inherit; color: inherit; }
+
+  .app { display: grid; grid-template-columns: 72px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) 64px; height: 100vh; min-height: 680px; }
+
+  /* left rail */
+  .rail { grid-row: 1 / 3; background: var(--surface-1); border-right: 1px solid var(--line); padding: var(--s3) 6px; display: flex; flex-direction: column; align-items: stretch; gap: 4px; }
+  .brand { display: grid; place-items: center; width: 40px; height: 40px; margin: 0 auto var(--s3); border-radius: 10px; background: var(--accent); color: var(--accent-ink); font: 800 15px var(--font-display); }
+  .rail .nav { flex-direction: column; justify-content: center; gap: 2px; padding: 8px 2px; text-align: center; font-size: 10.5px; line-height: 1.15; position: relative; }
+  .rail .nav .ico { font-size: 19px; line-height: 1; }
+  .rail .nav.active { box-shadow: inset 3px 0 0 var(--accent); }
+  .rail .nav .new { position: absolute; top: 2px; right: 2px; font-size: 8px; padding: 0 4px; }
+  .rail .grow { flex: 1; }
+  .rail hr { width: 32px; border: 0; border-top: 1px solid var(--line); margin: 6px auto; }
+  .nav { padding: 9px var(--s3); border-radius: var(--r-sm); color: var(--text-2); display: flex; justify-content: space-between; align-items: center; }
+  .nav.active { background: var(--accent-soft); color: var(--text); box-shadow: inset 3px 0 0 var(--accent); font-weight: 600; }
+  .rail h4 { margin: var(--s5) var(--s3) var(--s2); font-size: 11px; letter-spacing: .08em; color: var(--text-3); text-transform: uppercase; }
+  .new { font-size: 11px; font-weight: 700; color: var(--accent-ink); background: var(--accent); border-radius: 99px; padding: 0 7px; }
+
+  .main { display: flex; flex-direction: column; gap: var(--s3); padding: var(--s4) var(--s5); min-width: 0; min-height: 0; overflow: auto; }
+
+  /* source bar */
+  .source { display: flex; gap: var(--s3); align-items: center; flex-wrap: wrap; }
+  .search { flex: 1 1 360px; display: flex; align-items: center; gap: var(--s2); background: var(--surface-2); border: 1px solid var(--line-strong); border-radius: var(--r-sm); padding: 0 var(--s3); height: 38px; color: var(--text-2); }
+  .search b { color: var(--text); font-weight: 600; }
+  .btn { height: 36px; padding: 0 var(--s4); border-radius: var(--r-sm); border: 1px solid var(--line-strong); background: var(--surface-3); cursor: pointer; white-space: nowrap; }
+  .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; font-weight: 600; }
+  .btn.quiet { background: transparent; }
+  .seg { display: inline-flex; border: 1px solid var(--line-strong); border-radius: var(--r-sm); overflow: hidden; }
+  .seg button { border: 0; background: transparent; padding: 0 var(--s3); height: 34px; cursor: pointer; color: var(--text-2); }
+  .seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--text); font-weight: 600; box-shadow: inset 0 -2px 0 var(--accent); }
+
+  /* automatic preparation steps */
+  .steps { display: flex; gap: var(--s2); align-items: center; flex-wrap: wrap; font-size: 13px; }
+  .step { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 99px; background: var(--surface-2); border: 1px solid var(--line); color: var(--text-2); }
+  .step.done::before { content: "✓"; color: var(--ok); font-weight: 700; }
+  .step.run { border-color: var(--accent); color: var(--text); }
+  .step.run::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: blink 1s infinite; }
+  .step.todo { opacity: .55; }
+  .arrow { color: var(--text-3); }
+
+  /* scenes */
+  .scenes { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--s3); flex: 1 1 auto; min-height: 230px; }
+  .scene { background: var(--surface-1); border: 1px solid var(--line); border-radius: var(--r-md); overflow: hidden; display: flex; flex-direction: column; min-width: 0; }
+  .scene-head { display: flex; align-items: center; gap: var(--s2); padding: 8px var(--s3); border-bottom: 1px solid var(--line); font-size: 13px; }
+  .scene-head .title { font-weight: 600; }
+  .scene-head .muted { color: var(--text-3); }
+  .scene-head .spacer { flex: 1; }
+  .icon-btn { border: 1px solid var(--line); background: var(--surface-2); border-radius: var(--r-sm); height: 28px; padding: 0 10px; font-size: 12px; cursor: pointer; color: var(--text-2); }
+  .screen { position: relative; flex: 1 1 auto; min-height: 0; background: #0b0d10; }
+  .video-fake { position: absolute; inset: 0; background:
+      radial-gradient(ellipse at 35% 40%, rgba(227,163,68,.35), transparent 55%),
+      radial-gradient(ellipse at 70% 65%, rgba(91,155,255,.25), transparent 60%),
+      linear-gradient(160deg, #1d1a17, #0c0f14); }
+  .cam-fake { position: absolute; inset: 0; background:
+      radial-gradient(circle at 50% 42%, #3a3f49 0 13%, transparent 13.5%),
+      radial-gradient(ellipse at 50% 92%, #3a3f49 0 30%, transparent 30.5%),
+      linear-gradient(180deg, #1a1e24, #101318); }
+  .cam-fake::after { content: ""; position: absolute; left: 30%; right: 30%; bottom: 14%; height: 5%; background: #6b4a24; border-radius: 40px; transform: rotate(-12deg); opacity: .9; }
+  .label { position: absolute; left: 12px; top: 10px; font-size: 12px; color: rgba(255,255,255,.75); background: rgba(0,0,0,.45); padding: 2px 8px; border-radius: 4px; }
+  .sync { position: absolute; right: 12px; top: 10px; font-size: 12px; color: var(--ok); background: rgba(0,0,0,.5); padding: 2px 8px; border-radius: 4px; }
+
+  /* overlay: chords on the picture */
+  .overlay { position: absolute; left: 14px; right: 14px; bottom: 14px; display: flex; align-items: flex-end; gap: var(--s3); }
+  .chord-now { background: rgba(10,12,16,.85); border: 1px solid rgba(255,255,255,.14); border-radius: var(--r-md); padding: 8px 16px; display: flex; align-items: center; gap: 14px; }
+  .chord-now .c { font: 800 64px/1 var(--font-display); letter-spacing: -1px; }
+  .chord-now .n { color: var(--accent); font-weight: 800; font-size: 30px; }
+  .chord-now .shape { color: var(--text-2); font-size: 12px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .beats { display: flex; gap: 5px; margin-top: 6px; }
+  .beats i { width: 9px; height: 9px; border-radius: 50%; background: rgba(255,255,255,.25); }
+  .beats i.on { background: var(--warn); }
+  .chord-next { background: rgba(10,12,16,.75); border-radius: var(--r-sm); padding: 6px 12px; color: var(--text-2); font-size: 13px; }
+  .chord-next b { color: var(--text); font-size: 26px; }
+  .chord-later { color: var(--text-3); font-size: 18px; margin-left: 8px; }
+  .chord-next { white-space: nowrap; }
+  .section-tag { white-space: nowrap; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .section-tag { margin-left: auto; background: rgba(10,12,16,.75); border-radius: var(--r-sm); padding: 4px 10px; font-size: 13px; }
+  .section-tag b { color: var(--warn); }
+  .rec-pill { position: absolute; right: 12px; top: 10px; display: none; align-items: center; gap: 6px; background: rgba(239,106,110,.9); color: #fff; font-weight: 700; font-size: 12px; padding: 2px 9px; border-radius: 4px; }
+  .rec-pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #fff; animation: blink 1s infinite; }
+  .recording .rec-pill { display: inline-flex; }
+
+  /* preparing overlay on the left scene */
+  .prep { position: absolute; inset: 0; display: none; place-items: center; background: rgba(12,14,18,.72); }
+  .preparing .prep { display: grid; }
+  .prep-card { background: var(--surface-2); border: 1px solid var(--line-strong); border-radius: var(--r-md); padding: var(--s4) var(--s5); width: min(380px, 86%); }
+  .prep-card h3 { margin: 0 0 6px; font-size: 15px; }
+  .bar { height: 8px; background: var(--surface-3); border-radius: 99px; overflow: hidden; margin: 10px 0 6px; }
+  .bar i { display: block; height: 100%; width: 38%; background: var(--accent); }
+  .small { font-size: 12px; color: var(--text-3); }
+
+  /* bottom area: mixer + inputs + take */
+  .deck { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: var(--s3); }
+  .panel { background: var(--surface-1); border: 1px solid var(--line); border-radius: var(--r-md); padding: var(--s3); min-width: 0; }
+  .panel h3 { margin: 0 0 var(--s2); font-size: 13px; color: var(--text-2); font-weight: 600; display: flex; gap: var(--s2); align-items: center; }
+  .panel h3 .hint { color: var(--text-3); font-weight: 400; }
+  .strips { display: flex; gap: var(--s2); overflow-x: auto; padding-bottom: 2px; }
+  .strip { flex: 0 0 80px; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+  .strip.muted { opacity: .6; }
+  .strip.input { border-color: rgba(239,106,110,.45); }
+  .strip .name { font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .meter { height: 38px; display: flex; gap: 3px; align-items: flex-end; }
+  .meter span { flex: 1; border-radius: 2px; background: linear-gradient(to top, var(--ok) 0 70%, var(--warn) 70% 88%, var(--danger) 88%); }
+  .strip .btns { display: flex; gap: 4px; }
+  .strip .btns button { flex: 1; height: 24px; font-size: 11px; border-radius: 4px; border: 1px solid var(--line-strong); background: var(--surface-3); cursor: pointer; padding: 0; }
+  .strip .btns button.on { background: var(--warn); color: #1b1405; border-color: transparent; font-weight: 700; }
+  .strip .btns button.arm.on { background: var(--danger); color: #fff; }
+  .tag { font-size: 10px; color: var(--text-3); }
+  .sep { flex: 0 0 1px; background: var(--line); margin: 0 4px; }
+
+  .take { display: flex; flex-direction: column; gap: var(--s2); }
+  .rec-btn { height: 48px; border-radius: var(--r-md); border: 0; background: var(--danger); color: #fff; font-weight: 700; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
+  .rec-btn::before { content: ""; width: 14px; height: 14px; border-radius: 50%; background: #fff; }
+  .recording .rec-btn::before { border-radius: 3px; }
+  .check { display: flex; gap: 6px; align-items: center; font-size: 12px; color: var(--text-2); }
+  .check.ok::before { content: "✓"; color: var(--ok); font-weight: 700; }
+  .check.warn::before { content: "!"; color: var(--warn); font-weight: 800; width: 8px; text-align: center; }
+  .takes { margin: 0; padding: 0; list-style: none; font-size: 12px; display: flex; flex-direction: column; gap: 4px; }
+  .takes li { display: flex; justify-content: space-between; gap: 6px; background: var(--surface-2); border-radius: 4px; padding: 4px 8px; }
+  .takes li b { color: var(--text); font-weight: 600; }
+
+  /* transport */
+  .transport { grid-column: 2; display: flex; align-items: center; gap: var(--s4); padding: 0 var(--s5); border-top: 1px solid var(--line); background: var(--surface-1); min-width: 0; }
+  .play { width: 52px; height: 44px; border-radius: var(--r-sm); border: 0; background: var(--accent); color: var(--accent-ink); font-size: 18px; cursor: pointer; }
+  .time { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .timeline { flex: 1; position: relative; height: 34px; background: var(--surface-2); border-radius: var(--r-sm); overflow: hidden; min-width: 160px; }
+  .sec { position: absolute; top: 0; height: 12px; font-size: 10px; padding-left: 4px; color: #0d1016; font-weight: 700; }
+  .wave { position: absolute; left: 0; right: 0; bottom: 3px; height: 18px; background: repeating-linear-gradient(90deg, #3c4a62 0 2px, transparent 2px 4px); opacity: .9; }
+  .head { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--text); left: 41%; }
+  .loopbox { position: absolute; top: 12px; bottom: 0; left: 36%; width: 14%; background: rgba(240,180,67,.16); border-left: 2px solid var(--warn); border-right: 2px solid var(--warn); }
+
+  /* notes for the review (not part of the design) */
+  .notes { position: fixed; right: 14px; bottom: 108px; width: 330px; background: #fffbe6; color: #2a2410; border-radius: 10px; padding: 12px 14px; font-size: 12.5px; box-shadow: 0 8px 30px rgba(0,0,0,.4); z-index: 10; }
+  .notes h4 { margin: 0 0 6px; font-size: 13px; }
+  .notes ol { margin: 0; padding-left: 18px; }
+  .notes li { margin: 3px 0; }
+  .notes .x { float: right; border: 0; background: none; cursor: pointer; font-size: 16px; line-height: 1; color: #6b5d20; }
+  .notes.hidden { display: none; }
+  .notes-open { position: fixed; right: 14px; bottom: 74px; z-index: 9; background: #fffbe6; color: #2a2410; border: 0; border-radius: 6px; padding: 4px 10px; font-size: 12px; cursor: pointer; }
+  
+  .showcase { position: fixed; left: 84px; bottom: 74px; background: #fffbe6; color: #2a2410; border-radius: 8px; padding: 6px 8px; font-size: 12px; display: flex; gap: 6px; align-items: center; z-index: 10; box-shadow: 0 6px 20px rgba(0,0,0,.35); }
+  .showcase button { border: 1px solid #c9b763; background: #fff; border-radius: 5px; padding: 2px 8px; cursor: pointer; color: #2a2410; }
+  .showcase button[aria-pressed="true"] { background: #2a2410; color: #fffbe6; }
+
+  @keyframes blink { 50% { opacity: .25; } }
+
+  /* split vs single scene */
+  .layout-left .scenes { grid-template-columns: minmax(0, 1fr); }
+  .layout-left .scene.cam { display: none; }
+  .layout-right .scenes { grid-template-columns: minmax(0, 1fr); }
+  .layout-right .scene.song { display: none; }
+
+  @media (max-width: 1100px) {
+    .deck { grid-template-columns: minmax(0, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <nav class="rail" aria-label="Main">
+    <div class="brand" title="Worship Studio">WS</div>
+    <div class="nav" title="Library"><span class="ico">♫</span>Library</div>
+    <div class="nav active" title="Session"><span class="ico">▣</span>Session<span class="new">NEW</span></div>
+    <div class="nav" title="Prepare: chart, sections, cues"><span class="ico">✎</span>Prepare</div>
+    <hr />
+    <div class="nav" title="Tuner"><span class="ico">◎</span>Tuner</div>
+    <div class="grow"></div>
+    <div class="nav" title="Settings"><span class="ico">⚙</span>Settings</div>
+  </nav>
+
+  <main class="main">
+    <!-- 1. Source: paste a link or search; everything else happens automatically -->
+    <div class="source">
+      <div class="search" role="search">🔎 <b>Tanging Kailangan (Acoustic) – Victory Worship</b> <span>· youtube.com/watch?v=…</span></div>
+      <div class="seg" role="group" aria-label="Scene layout">
+        <button aria-pressed="true" data-layout="split">Split</button>
+        <button aria-pressed="false" data-layout="left">Song only</button>
+        <button aria-pressed="false" data-layout="right">Camera only</button>
+      </div>
+      <button class="btn quiet" title="Open the chosen scene full screen on a second display, like an OBS projector">⛶ Projector…</button>
+    </div>
+
+    <div class="steps" aria-label="Automatic preparation">
+      <span class="step done" id="st1">Recorded from the video</span><span class="arrow">→</span>
+      <span class="step done" id="st2">Stems separated</span><span class="arrow">→</span>
+      <span class="step done" id="st3">Chords · key G · capo 0</span><span class="arrow">→</span>
+      <span class="step done" id="st4">Sections + spoken cues</span><span class="arrow">→</span>
+      <span class="step done" id="st5">Ready to play along</span>
+    </div>
+
+    <!-- 2. Two scenes, like OBS: the song video and your camera -->
+    <section class="scenes" aria-label="Scenes">
+      <article class="scene song">
+        <div class="scene-head">
+          <span class="title">Song</span><span class="muted">YouTube video · muted, follows the player</span>
+          <span class="spacer"></span>
+          <button class="icon-btn">Chord overlay: on</button>
+        </div>
+        <div class="screen">
+          <div class="video-fake"></div>
+          <span class="label">Video picture (sound comes from the stems below)</span>
+          <span class="sync">● in sync</span>
+          <div class="overlay">
+            <div class="chord-now">
+              <span class="c">G</span><span class="n">1</span>
+              <span class="shape"><svg width="44" height="52" viewBox="0 0 44 52" aria-label="open G shape"><g stroke="#868d9b" stroke-width="1"><line x1="6" y1="8" x2="38" y2="8" stroke-width="3" stroke="#b4bac6"/><line x1="6" y1="18" x2="38" y2="18"/><line x1="6" y1="28" x2="38" y2="28"/><line x1="6" y1="38" x2="38" y2="38"/><line x1="6" y1="48" x2="38" y2="48"/><line x1="6" y1="8" x2="6" y2="48"/><line x1="12.4" y1="8" x2="12.4" y2="48"/><line x1="18.8" y1="8" x2="18.8" y2="48"/><line x1="25.2" y1="8" x2="25.2" y2="48"/><line x1="31.6" y1="8" x2="31.6" y2="48"/><line x1="38" y1="8" x2="38" y2="48"/></g><g fill="#5b9bff"><circle cx="6" cy="33" r="3.4"/><circle cx="12.4" cy="23" r="3.4"/><circle cx="38" cy="33" r="3.4"/></g></svg>open G
+                <span class="beats" aria-label="beat 3 of 4"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></span>
+            </div>
+            <div class="chord-next">next <b>D/F#</b> <span style="color:var(--accent);font-weight:700">5</span><span class="chord-later">→ Em7 6m → C 4</span></div>
+            <div class="section-tag">Chorus 2 · <b>cue in 2 bars</b></div>
+          </div>
+          <div class="prep">
+            <div class="prep-card">
+              <h3>Getting the song ready</h3>
+              <div class="small">Step 1 of 4 · Recording the video's sound while it plays (real time)</div>
+              <div class="bar"><i></i></div>
+              <div class="small">2:10 of 5:43 · then about 1 minute to separate the stems on your GPU. You can watch along meanwhile.</div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="scene cam">
+        <div class="scene-head">
+          <span class="title">Camera</span><span class="muted">EMEET C60E · 1080p 30 fps · live preview</span>
+          <span class="spacer"></span>
+          <button class="icon-btn">Chords on video: off</button>
+          <button class="icon-btn">⚙</button>
+        </div>
+        <div class="screen">
+          <div class="cam-fake"></div>
+          <span class="label">You (mirror view)</span>
+          <span class="rec-pill">REC 1:12</span>
+        </div>
+      </article>
+    </section>
+
+    <!-- 3. Mixer (song stems + your inputs) and the take -->
+    <section class="deck">
+      <div class="panel">
+        <h3>Mix <span class="hint">· song parts from the AI split, then your inputs (dry, heard through the device's headphone jack)</span></h3>
+        <div class="strips">
+          <div class="strip"><div class="name"><i class="dot" style="background:var(--role-vocals)"></i>Vocals</div><div class="meter"><span style="height:72%"></span><span style="height:66%"></span></div><div class="btns"><button>M</button><button>S</button></div></div>
+          <div class="strip muted"><div class="name"><i class="dot" style="background:var(--role-guitar)"></i>Guitars ×3</div><div class="meter"><span style="height:0"></span><span style="height:0"></span></div><div class="btns"><button class="on">M</button><button>S</button></div><div class="tag">reference, muted</div></div>
+          <div class="strip muted"><div class="name"><i class="dot" style="background:var(--role-keys)"></i>Keys</div><div class="meter"><span style="height:0"></span><span style="height:0"></span></div><div class="btns"><button class="on">M</button><button>S</button></div><div class="tag">quiet part</div></div>
+          <div class="strip"><div class="name"><i class="dot" style="background:var(--role-bass)"></i>Bass</div><div class="meter"><span style="height:58%"></span><span style="height:55%"></span></div><div class="btns"><button>M</button><button>S</button></div></div>
+          <div class="strip"><div class="name"><i class="dot" style="background:var(--role-other)"></i>Leftover</div><div class="meter"><span style="height:22%"></span><span style="height:20%"></span></div><div class="btns"><button>M</button><button>S</button></div></div>
+          <div class="strip"><div class="name"><i class="dot" style="background:var(--role-click)"></i>Click</div><div class="meter"><span style="height:40%"></span><span style="height:40%"></span></div><div class="btns"><button>M</button><button title="Count-in">1 bar</button></div></div>
+          <div class="strip"><div class="name"><i class="dot" style="background:var(--role-cues)"></i>Cues</div><div class="meter"><span style="height:0"></span><span style="height:0"></span></div><div class="btns"><button>M</button><button>Edit</button></div></div>
+          <div class="sep"></div>
+          <div class="strip input"><div class="name">🎸 E2 Gen2</div><div class="meter"><span style="height:61%"></span><span style="height:61%"></span></div><div class="btns"><button class="arm on">ARM</button></div><div class="tag">guitar · dry</div></div>
+          <div class="strip input"><div class="name">🎙 PD200X</div><div class="meter"><span style="height:48%"></span><span style="height:48%"></span></div><div class="btns"><button class="arm on">ARM</button></div><div class="tag">vocal · dry</div></div>
+        </div>
+      </div>
+
+      <div class="panel take">
+        <h3>Take</h3>
+        <button class="rec-btn" id="rec">Record from Chorus 2</button>
+        <div class="check ok">Inputs found (E2 Gen2, PD200X)</div>
+        <div class="check ok">Windows effects off · latency calibrated (14 ms)</div>
+        <div class="check warn">Use headphones: speakers leak into the mics</div>
+        <ul class="takes" aria-label="Takes">
+          <li><span><b>Take 3</b> · guitar + vocal + video</span><span>2:41 ▶</span></li>
+          <li><span><b>Take 2</b> · guitar + vocal</span><span>3:05 ▶</span></li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer class="transport" aria-label="Transport">
+    <button class="play" aria-label="Play">▶</button>
+    <span class="time">2:21.4 / 5:43.3</span>
+    <div class="timeline" aria-hidden="true">
+      <span class="sec" style="left:0;width:12%;background:#7c9fd4">Intro</span>
+      <span class="sec" style="left:12%;width:24%;background:#a6c2ea">Verse 1</span>
+      <span class="sec" style="left:36%;width:14%;background:#f0b443">Chorus</span>
+      <span class="sec" style="left:50%;width:22%;background:#a6c2ea">Verse 2</span>
+      <span class="sec" style="left:72%;width:18%;background:#f0b443">Chorus 2</span>
+      <span class="sec" style="left:90%;width:10%;background:#7c9fd4">Tag</span>
+      <div class="loopbox"></div><div class="wave"></div><div class="head"></div>
+    </div>
+    <button class="btn">Loop Chorus</button>
+    <button class="btn">Tempo 100%</button>
+    <button class="btn">Key G</button>
+  </footer>
+</div>
+
+<div class="showcase" aria-label="Mockup states">
+  Show state:
+  <button aria-pressed="true" data-state="ready">Ready</button>
+  <button aria-pressed="false" data-state="preparing">First time (preparing)</button>
+  <button aria-pressed="false" data-state="recording">Recording</button>
+</div>
+
+<button class="notes-open" onclick="document.getElementById('notes').classList.remove('hidden')">Mockup notes</button>
+<aside class="notes hidden" id="notes">
+  <button class="x" aria-label="Hide notes" onclick="document.getElementById('notes').classList.add('hidden')">×</button>
+  <h4>Mockup notes for JP</h4>
+  <ol>
+    <li><b>One screen</b> replaces Browser, Rehearse and Record. The left menu is now a narrow icon bar, so the session gets the room.</li>
+    <li><b>Paste a link or search.</b> The first time, the app records the video's sound while it plays, then splits the stems (~1 min), finds chords and sections and makes the spoken cues by itself.</li>
+    <li><b>Left scene:</b> the YouTube picture, muted and kept in sync with the player. Chords and section show on top.</li>
+    <li><b>Right scene:</b> your camera live. Split / Song only / Camera only, and <b>Projector</b> for a second screen or TV.</li>
+    <li><b>Record</b> takes E2 + PD200X + camera together, lined up with the song.</li>
+    <li>Tuner, chart editing and cue editing stay one click away (Prepare).</li>
+  </ol>
+</aside>
+
+<script>
+  const app = document.getElementById("app");
+  const steps = ["st1", "st2", "st3", "st4", "st5"].map((id) => document.getElementById(id));
+  const rec = document.getElementById("rec");
+  function setState(s) {
+    app.classList.remove("preparing", "recording");
+    if (s !== "ready") app.classList.add(s);
+    steps.forEach((el, i) => {
+      el.className = "step " + (s === "preparing" ? (i === 0 ? "run" : "todo") : "done");
+    });
+    steps[0].textContent = s === "preparing" ? "Recording from the video · 2:10 / 5:43" : "Recorded from the video";
+    rec.textContent = s === "recording" ? "Stop · 1:12" : "Record from Chorus 2";
+    document.querySelectorAll("[data-state]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.state === s)));
+  }
+  document.querySelectorAll("[data-state]").forEach((b) => b.addEventListener("click", () => setState(b.dataset.state)));
+  document.querySelectorAll("[data-layout]").forEach((b) =>
+    b.addEventListener("click", () => {
+      app.classList.remove("layout-left", "layout-right");
+      if (b.dataset.layout !== "split") app.classList.add("layout-" + b.dataset.layout);
+      document.querySelectorAll("[data-layout]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    }),
+  );
+</script>
+</body>
+</html>

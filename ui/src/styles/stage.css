@@ -1,0 +1,259 @@
+/* Stage light (JP, 2026-11-19): the new look, layered over the base styles.
+   Warm near-black ground; surfaces are lighter steps with no borders or shadows; one stage-light amber on live data
+   only (the current chord, the playhead, meters); primary controls by inversion (white pill, black text);
+   recording is the one red. Inter, bundled (works offline). Design: .taste-skill/mockups/a-stage-light.html. */
+@import "@fontsource-variable/inter/wght.css";
+
+:root,
+:root[data-theme="dark"] {
+  --font: "Inter Variable", "Segoe UI Variable Text", system-ui, sans-serif;
+  --font-display: "Inter Variable", "Segoe UI Variable Display", system-ui, sans-serif;
+  --r-sm: 8px; --r-md: 12px; --r-lg: 20px; --r-pill: 999px;
+  --bar-h: 52px;
+
+  --bg: #0e0d0c;
+  --surface-1: #181716;
+  --surface-2: #211f1d;
+  --surface-3: #2a2826;
+  --line: #262422;
+  --line-strong: #4a4744;
+  --text: #ffffff;
+  --text-2: #b4b4b4;
+  --text-3: #949494;
+  --accent: #f2b33d;          /* stage light: live data only */
+  --accent-ink: #1a1408;
+  --accent-soft: rgba(242, 179, 61, 0.14);
+  --ok: #7fd1a0;
+  --warn: #e5a93b;
+  --danger: #f06a6e;          /* text on dark (4.5:1) */
+  --rec: #c7353b;             /* the record fill */
+  --wave: #c9c2b8;
+  --wave-dim: #3a3734;
+  --focus: #ffffff;
+  --inv-bg: #ffffff; --inv-ink: #000000; --inv-hover: #e9e9e9;   /* primary and "on" controls: inverted ink */
+  --ok-bg: #1e2b22; --danger-bg: #3a1718; --danger-ink: #ff9a9d;
+  --section: var(--text);       /* timeline section bands: grey steps, not the stage light */
+}
+
+/* Stage light, day version: warm paper ground, ink text, a deeper amber that still reads on white. */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f4f2ee;
+  --surface-1: #ffffff;
+  --surface-2: #efece7;
+  --surface-3: #e4e0da;
+  --line: #e6e2dc;
+  --line-strong: #b9b3ab;
+  --text: #171512;
+  --text-2: #4f4a44;
+  --text-3: #6a645d;
+  --accent: #a86a12;
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(168, 106, 18, 0.12);
+  --ok: #1f7a4a;
+  --warn: #8a5800;
+  --danger: #c4373c;
+  --rec: #c7353b;
+  --wave: #6b645c;
+  --wave-dim: #d6d1ca;
+  --focus: #171512;
+  --inv-bg: #171512; --inv-ink: #ffffff; --inv-hover: #2e2a26;
+  --ok-bg: #dff3e6; --danger-bg: #fbe4e4; --danger-ink: #8f1f23;
+}
+
+body { font-feature-settings: "cv11", "ss01"; letter-spacing: -0.005em; }
+h1, h2, h3, h4 { letter-spacing: -0.015em; }
+
+/* ---------- controls: pills; primary and "on" by inversion ---------- */
+.btn { border-radius: var(--r-pill); border-color: transparent; background: var(--surface-2); }
+.btn:hover:not(:disabled) { background: var(--surface-3); border-color: transparent; }
+.btn-primary { background: var(--inv-bg); color: var(--inv-ink); font-weight: 600; }
+.btn-primary:hover:not(:disabled) { background: var(--inv-hover); filter: none; }
+.btn-quiet { background: transparent; }
+.btn-quiet:hover:not(:disabled) { background: var(--surface-2); }
+.btn-danger { border-color: transparent; background: var(--danger-bg); color: var(--danger-ink); }
+.btn.is-pressed:not(.btn-primary) { background: var(--inv-bg); color: var(--inv-ink); border-color: transparent; }
+.segmented { border: 0; border-radius: var(--r-pill); background: var(--surface-2); padding: 3px; }
+.segmented button { border-radius: var(--r-pill); }
+.segmented button.is-on { background: var(--inv-bg); color: var(--inv-ink); box-shadow: none; }
+input,
+select,
+textarea { border-color: transparent; background: var(--surface-2); border-radius: var(--r-sm); }
+input:hover,
+select:hover { border-color: var(--line-strong); }
+input[type="range"] { accent-color: var(--inv-bg); background: transparent; }
+input[type="checkbox"] { accent-color: var(--inv-bg); }
+.toggle input:checked + .toggle-track { background: var(--inv-bg); border-color: var(--inv-bg); }
+.toggle input:checked + .toggle-track::after { background: var(--inv-ink); }
+.progress-fill { background: var(--inv-bg); }
+
+/* ---------- shell: a top bar instead of the icon rail ---------- */
+.shell { grid-template-columns: 1fr; grid-template-rows: var(--bar-h) 1fr; }
+.shell.has-transport { grid-template-rows: var(--bar-h) 1fr var(--transport-h); }
+.topbar { display: flex; align-items: center; gap: 28px; padding: 0 var(--s4); background: var(--bg); min-width: 0; }
+.topbar .brand { display: flex; align-items: center; gap: 10px; width: auto; height: auto; margin: 0; background: none; color: var(--text); font: 600 15px/1 var(--font); }
+.topbar .brand svg { width: 22px; height: 22px; flex: none; }
+.topnav { display: flex; gap: 4px; }
+.topnav .nav-item { display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 12px; border: 0; border-radius: var(--r-pill); background: transparent; color: var(--text-2); font: 500 14px/1 var(--font); cursor: pointer; }
+.topnav .nav-item:hover:not(:disabled) { color: var(--inv-bg); }
+.topnav .nav-item.is-current { color: var(--inv-bg); background: var(--surface-1); }
+.topnav .nav-item:disabled { opacity: 0.4; cursor: default; }
+.topnav .nav-icon { display: none; }
+.topnav .nav-item { flex-direction: row; min-height: 0; box-shadow: none; font-weight: 500; }
+.topnav .nav-item .pill-rec { position: static; font-size: 11px; padding: 1px 6px; }
+.topbar-end { margin-left: auto; display: flex; align-items: center; gap: var(--s3); color: var(--text-2); font-size: var(--t-sm); }
+.main { grid-column: 1; }
+.transport-wrap { grid-column: 1; border-top: 0; background: var(--surface-1); }
+.pill-rec { background: var(--rec); color: #fff; }
+
+/* ---------- surfaces: lightness steps, no borders ---------- */
+.panel,
+.card { border-color: transparent; border-radius: var(--r-lg); box-shadow: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
+
+/* ---------- Session ---------- */
+.session { gap: 12px; }
+.source-input { border-radius: var(--r-pill); padding: 0 18px; }
+.prep-step > * { border-color: transparent; background: var(--surface-1); }
+.prep-step.is-run > * { border-color: transparent; color: var(--text); }
+/* scenes: song and camera as cards, the picture with rounded corners, no rules */
+.scene { border: 0; border-radius: var(--r-lg); background: var(--surface-1); overflow: hidden; }
+.scene-head { border-bottom: 0; min-height: 44px; padding: 6px 10px 6px 18px; }
+.scene-head .strong { font-size: var(--t-lg); }
+.scene-screen { background: #000; margin: 0 10px 10px; border-radius: var(--r-md); }
+/* chord band: the current chord is the biggest thing on screen, in stage light */
+.chord-band { border: 0; border-radius: var(--r-lg); background: var(--surface-1); padding: 14px 22px; }
+.cb-chord { color: var(--accent); font-weight: 650; font-size: 72px; letter-spacing: -0.03em; }
+.cb-chord.is-estimate { color: var(--text-2); }
+.cb-count { color: var(--accent); font-weight: 650; }
+.cb-nash,
+.cb-up-nash { color: var(--text-2); font-weight: 600; }
+.cb-beats i.on.down { background: var(--accent); }
+.cb-up.is-first b { font-weight: 600; }
+.cb-sec-name { font-weight: 600; }
+.cb-sec-next.is-soon { color: var(--accent); }
+.chord-band.is-big .cb-chord { font-size: 24vh; }
+/* waveform: a quiet strip */
+.waveform { border: 0; border-radius: var(--r-md); background: var(--surface-1); }
+/* deck: mix and take as cards */
+.session-deck { gap: 12px; grid-template-columns: minmax(0, 1fr) 340px; }
+.panel { border: 0; border-radius: var(--r-lg); padding: 14px 18px; gap: 10px; }
+.panel-head .strong { font-size: var(--t-lg); }
+.strip { border: 0; border-radius: var(--r-md); background: var(--surface-2); padding: 8px; flex-basis: 92px; }
+.strip-sep { background: var(--surface-3); }
+.strip-btns .btn { border-radius: var(--r-pill); }
+.strip-btns .arm[aria-pressed="true"] { background: var(--rec); color: #fff; }
+.strip-parts .part { border-color: transparent; background: var(--surface-1); border-radius: var(--r-pill); }
+.strip-parts .part.is-on { background: var(--inv-bg); color: var(--inv-ink); }
+/* the record button: the one red, a big pill */
+.take-panel .rec-button { height: 56px; border-radius: var(--r-pill); background: var(--rec); font-size: 17px; font-weight: 600; }
+.take-panel .rec-button:hover:not(:disabled) { background: #d23c42; }
+.take-panel .rec-button.is-on { background: var(--inv-bg); color: var(--inv-ink); }
+.takes { max-height: 132px; gap: 6px; }
+.takes li { background: transparent; padding: 2px 0; }
+.monitor-input { border: 0; background: var(--surface-2); border-radius: var(--r-md); padding: 8px 12px 10px; }
+.help-box { border: 0; background: var(--surface-2); }
+.splitter-col::after, .splitter-row::after { background: var(--surface-3); }
+
+/* ---------- signal chain: one card per input, monitor and buzz cleanup inside ---------- */
+.chain { display: flex; gap: 12px; align-items: stretch; min-width: 0; flex-wrap: wrap; }
+.chain > .strips { flex: none; }
+.input-card { flex: 1 1 280px; max-width: 420px; min-width: 260px; display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-radius: var(--r-md); background: var(--surface-2); }
+.ic-head { display: flex; align-items: center; gap: 8px; }
+.ic-name { font-size: var(--t-lg); font-weight: 600; margin: 0; }
+.input-card .arm { min-height: 30px; }
+.input-card .arm[aria-pressed="true"] { background: var(--rec) !important; color: #fff !important; }
+.input-card select { width: 100%; }
+.input-card .meter { height: 8px; border-radius: 4px; }
+.input-card .monitor-input { background: transparent !important; padding: 0 !important; }
+.session-deck { grid-template-columns: minmax(0, 1fr) minmax(0, auto) 340px !important; }
+.solo-deck { grid-template-columns: minmax(0, 1fr) 340px !important; }
+.inputs-panel { min-width: 0; }
+.inputs-panel .chain { flex-wrap: nowrap; }
+@media (max-width: 1500px) {
+  .session-deck:not(.solo-deck) { grid-template-columns: minmax(0, 1fr) 340px !important; }
+  .inputs-panel { grid-column: 1; }
+  .session-deck:not(.solo-deck) .take-panel { grid-column: 2; grid-row: 1 / span 2; }
+}
+
+/* ---------- Session as the mockup's grid (JP, 2026-11-19): the song 2/3 and the camera 1/3 side by side;
+   chords, timeline, mix and inputs under the song; the take under the camera. The scenes and the deck are
+   unwrapped (display: contents) so their parts sit in one grid. The drag splitters are not used here. ---------- */
+.session:not(.is-browsing) {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  grid-auto-flow: row dense;
+  grid-auto-rows: max-content; /* rows never squeeze the scenes (their pictures are overflow-hidden) */
+  align-content: start;
+  flex: none;
+  gap: 12px;
+}
+.session:not(.is-browsing) > * { grid-column: 1; min-width: 0; }
+.session:not(.is-browsing) > .source-bar,
+.session:not(.is-browsing) > .prep-steps,
+.session:not(.is-browsing) > p { grid-column: 1 / -1; }
+.session:not(.is-browsing) .scenes,
+.session:not(.is-browsing) .session-deck { display: contents; }
+.session:not(.is-browsing) .scenes > *,
+.session:not(.is-browsing) .session-deck > * { grid-column: 1; min-width: 0; }
+.session:not(.is-browsing) .splitter { display: none; }
+/* the song: a 16:9 picture */
+.session:not(.is-browsing) .scene:not(.camera-scene) .scene-screen { flex: none; aspect-ratio: 16 / 9; }
+/* the camera and the take: the right column */
+.session:not(.is-browsing) .camera-scene { grid-column: 2; align-self: start; }
+.session:not(.is-browsing) .camera-scene .scene-screen { flex: none; aspect-ratio: 16 / 9; }
+.session:not(.is-browsing) .session-deck > .take-panel { grid-column: 2; grid-row: span 4; height: auto; min-height: 0; align-self: stretch; }
+.session:not(.is-browsing) .solo-deck > .take-panel { grid-row: span 1; }
+/* Song only / Camera only: the one scene takes the left column */
+.session.layout-camera:not(.is-browsing) .camera-scene { grid-column: 1; }
+/* the take sits right under the camera: the song spans two rows beside them */
+.session:not(.is-browsing).layout-split .scene:not(.camera-scene) { grid-row: span 2; }
+.session:not(.is-browsing).layout-split .session-deck > .take-panel { grid-row: span 5; }
+.camera-scene .scene-head { flex-wrap: wrap; row-gap: 6px; }
+.session:not(.is-browsing).layout-split .solo-deck > .take-panel { grid-row: span 2; }
+
+/* ---------- Library ---------- */
+.library-page { max-width: 1200px; gap: 14px; }
+.library-page .page-head { display: flex; align-items: center; gap: 12px; }
+.library-page .page-head h1 { font-size: 26px; }
+.page-sub { margin: 2px 0 0; }
+.library-find { width: min(420px, 100%); border-radius: var(--r-pill) !important; padding: 0 18px !important; min-height: 40px; }
+.table th { text-transform: none; letter-spacing: 0; font-size: var(--t-sm); font-weight: 500; border-bottom-color: var(--line); }
+.table td { border-bottom-color: var(--line); }
+.library-table td { height: 56px; }
+.library-table .row-button { font-size: var(--t-lg); }
+.library-table tbody tr:hover .lib-go { color: var(--text); }
+.lib-go { width: 24px; color: var(--text-3); font-size: 22px; text-align: right; }
+.lib-tag { margin-left: 10px; font-weight: 500; }
+.pill-ok { background: var(--ok-bg); color: var(--ok); }
+.library-later { margin: 4px 2px; }
+
+/* ---------- Prepare: the stage light stays on what is live (the chord under the playhead); the rest is ink ---------- */
+:root { --diagram: var(--text); }
+.cc-nash,
+.tp-nash,
+.lg-nash { color: var(--text-2); }
+.flow-step button { border-color: transparent; background: var(--surface-1); }
+.flow-step.is-current button { border-color: transparent; background: var(--inv-bg); color: var(--inv-ink); }
+.flow-step.is-current .flow-detail { color: var(--text-3); }
+.idea.is-on { border-color: var(--inv-bg); background: var(--surface-3); }
+.chord-card { border-radius: var(--r-md); }
+.chord-card.is-selected { box-shadow: 0 0 0 2px var(--inv-bg); background: var(--surface-3); }
+.chord-card.is-active { box-shadow: 0 0 0 2px var(--accent); }
+button.chord-card:hover { border-color: var(--line-strong); }
+.banner { border: 0; border-radius: var(--r-md); }
+
+/* ---------- Settings and Tuner: one readable column ---------- */
+.settings, .tuner-page { max-width: 980px; }
+.settings .segmented { display: inline-flex; width: auto; align-self: flex-start; }
+
+/* ---------- dialogs and popovers on the browser's own elements ---------- */
+dialog.dialog { color: var(--text); border: 0; border-radius: var(--r-lg); padding: 24px 26px; background: var(--surface-1); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5); }
+dialog.dialog::backdrop { background: rgba(0, 0, 0, 0.6); }
+dialog.dialog h2 { margin-bottom: 4px; }
+/* popover: in the top layer, placed under its button by anchor positioning */
+.popover[popover] { position: fixed; inset: auto; margin: 6px 0 0; top: anchor(bottom); right: anchor(right); position-try-fallbacks: flip-block, flip-inline; color: var(--text); border: 0; border-radius: var(--r-md); background: var(--surface-2); box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45); }
+.popover[popover]:not(:popover-open) { display: none; }

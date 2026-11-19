@@ -1,0 +1,61 @@
+@import "./styles/tokens.css";
+@import "./styles/components.css";
+@import "./styles/layout.css";
+@import "./styles/stage.css";
+
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: var(--t-md) / 1.45 var(--font);
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, h4 { margin: 0; font-family: var(--font-display); font-weight: 600; letter-spacing: -0.01em; }
+h1 { font-size: var(--t-2xl); }
+h2 { font-size: var(--t-xl); }
+h3 { font-size: var(--t-lg); }
+h4 { font-size: var(--t-md); margin-top: var(--s4); }
+p { margin: var(--s2) 0; }
+code, kbd { font-family: "Cascadia Mono", Consolas, monospace; font-size: var(--t-sm); background: var(--surface-3); border-radius: 4px; padding: 1px 6px; }
+kbd.is-dupe { outline: 1px solid var(--warn); }
+.muted { color: var(--text-3); }
+.small { font-size: var(--t-sm); }
+.strong { font-weight: 600; }
+.center { text-align: center; }
+.num { font-variant-numeric: tabular-nums; }
+.eyebrow { font-size: var(--t-xs); text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-3); font-weight: 600; }
+ul.plain { list-style: none; padding: 0; margin: var(--s2) 0; }
+ul.plain li { padding: 2px 0; }
+
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+
+input, select, textarea {
+  font: inherit;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  min-height: var(--target);
+  padding: 0 var(--s3);
+}
+input:hover, select:hover { border-color: var(--line-strong); }
+input[type="number"] { width: 100px; }
+input[type="checkbox"] { min-height: 0; width: 18px; height: 18px; accent-color: var(--accent); }
+input[type="range"] { padding: 0; min-height: 24px; accent-color: var(--accent); background: transparent; border: none; width: 100%; }
+
+.standalone { padding: var(--s8); }
+
+@media print {
+  :root, :root[data-theme] { --bg: #fff; --surface-1: #fff; --surface-2: #fff; --text: #000; --text-2: #222; --text-3: #555; --accent: #1c4fa8; --line: #999; color-scheme: light; }
+  .no-print, .rail, .transport-wrap, .song-head, .subnav, .inspector { display: none !important; }
+  .shell, .main { display: block !important; height: auto !important; overflow: visible !important; }
+  .print-only { display: block !important; }
+  .prepare-chart { display: block !important; }
+  .chord-card { break-inside: avoid; }
+  .chart-section { break-inside: avoid; }
+}
+.print-only { display: none; }
+
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

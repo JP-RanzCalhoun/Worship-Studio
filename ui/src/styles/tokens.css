@@ -1,0 +1,79 @@
+/* Design tokens. Every color, size and space in the app comes from here. */
+:root {
+  /* spacing: 4 px grid */
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 20px; --s6: 24px; --s7: 32px; --s8: 48px;
+  /* type */
+  --font: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  --t-xs: 12px; --t-sm: 13px; --t-md: 14px; --t-lg: 16px; --t-xl: 20px; --t-2xl: 26px; --t-3xl: 44px; --t-4xl: 64px;
+  /* shape */
+  --r-sm: 6px; --r-md: 10px; --r-lg: 14px;
+  --target: 36px;      /* minimum control height */
+  --target-lg: 48px;   /* transport / rehearsal controls */
+  --rail: 72px;      /* icon rail: the work area gets the room */
+  --transport-h: 64px;
+
+  /* track roles: identical in mixer, timeline, stems list */
+  --role-vocals: #e0708a;
+  --role-guitar: #e3a344;
+  --role-keys: #a68be8;
+  --role-bass: #5cbf8a;
+  --role-drums: #4fb7cf;
+  --role-other: #9097a6;
+  --role-click: #8496b3;
+  --role-cues: #4dbfae;
+}
+
+/* Dark (default) */
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #121418;
+  --surface-1: #181b21;
+  --surface-2: #1f232b;
+  --surface-3: #282d37;
+  --line: #2f3541;
+  --line-strong: #434b5a;
+  --text: #e8eaef;
+  --text-2: #b4bac6;
+  --text-3: #868d9b;
+  --accent: #5b9bff;
+  --accent-ink: #0b1220;
+  --accent-soft: rgba(91, 155, 255, 0.14);
+  --ok: #46c08a;
+  --warn: #f0b443;
+  --danger: #ef6a6e;
+  --wave: #7c9fd4;
+  --wave-dim: #3c4a62;
+  --focus: #9cc2ff;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f4f5f7;
+  --surface-1: #ffffff;
+  --surface-2: #f0f2f5;
+  --surface-3: #e4e7ec;
+  --line: #d7dbe2;
+  --line-strong: #b9bfca;
+  --text: #171a20;
+  --text-2: #3e4552;
+  --text-3: #5b6271; /* 4.5:1+ for small text on light surfaces */
+  --accent: #2763d6;
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(39, 99, 214, 0.1);
+  --ok: #11633f;
+  --warn: #8a5800;
+  --danger: #c4373c;
+  --wave: #4c74b3;
+  --wave-dim: #b8c6dc;
+  --focus: #2763d6;
+  --role-vocals: #c24a67;
+  --role-guitar: #b8741a;
+  --role-keys: #7552c9;
+  --role-bass: #2f9363;
+  --role-drums: #2a8ca3;
+  --role-other: #6b7282;
+  --role-click: #5c6f8f;
+  --role-cues: #23917f;
+}

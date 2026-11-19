@@ -1,0 +1,43 @@
+# --- Private media: never commit songs, stems, recordings, video ---
+*.mp3
+*.wav
+*.flac
+*.m4a
+*.aac
+*.ogg
+*.mp4
+*.mov
+*.mkv
+*.webm
+projects/
+recordings/
+spikes/out/
+
+# --- Models and generated weights ---
+models/
+*.ckpt
+*.pth
+*.th
+*.onnx
+*.safetensors
+
+# --- Credentials ---
+.env
+*.key
+secrets*
+
+# --- Build output / tooling ---
+build/
+out/
+.venv/
+__pycache__/
+*.pyc
+node_modules/
+ui/dist/
+.vs/
+*.log
+third_party/
+
+# design tool scratch (screenshots, dealt sheets); the mockups stay
+.taste-skill/*
+!.taste-skill/mockups/
