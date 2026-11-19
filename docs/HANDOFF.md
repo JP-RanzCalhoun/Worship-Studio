@@ -15,7 +15,7 @@ and `docs/AUDIT-2026-11-17.md`.
 - **App: Worship Studio** — Windows desktop app for Sunday prep and recording: AI stems, chords, click + cues, tuner,
   built-in YouTube with "learn this song", live monitoring, guitar + vocal takes lined up with the song (or solo),
   camera recording with looks, ambient pads. Personal + church use now; maybe public later.
-- Original brief: `CLAUDE_BUILD_PROMPT.md` (kept outside the repo).
+- Original brief: `Documents\ChatGPT\Stem Separator software\CLAUDE_BUILD_PROMPT.md` in JP's user folder (not in the repo).
 - This repo lives on JP's PC (the Claude session that worked on it
   today ran from another folder; open the next session in the repo folder instead).
 
@@ -27,7 +27,7 @@ and `docs/AUDIT-2026-11-17.md`.
   VB-Cable when possible and put JP's output device back afterwards.
 - JP judges sound by ear: build, measure what you can (`monitorStatus`, levels), then ask him to listen.
 - Reply style: short and plain.
-- **Slack:** a private channel for Claude/ChatGPT/Muse audits; prefix `[Claude]`.
+- **Slack:** private channel `#claude-chatgpt` for Claude/ChatGPT/Muse audits (find it with Slack channel search); prefix `[Claude]`.
 
 ---
 
@@ -159,6 +159,15 @@ app\build\WorshipStudio_artefacts\Release\"Worship Studio.exe"
   `siteVideo('state')`, `listSongs`.
 - Files are CRLF in the working copy; scripted edits must keep CRLF (several edits today hit mixed endings).
 - Test song: `tanging-kailangan-acoustic-victory-worship-victo` (JP's; never delete).
+
+## 6b. Public GitHub copy (for Muse and other reviewers)
+- **https://github.com/JP-RanzCalhoun/Worship-Studio** (public). Local remote: `github`.
+- It is the local `public` branch: one snapshot commit per update, signed `JP-RanzCalhoun` with GitHub's noreply
+  address. **Never push `master`**: its commits carry JP's work email. Never force-push.
+- Update only when JP asks ("update GitHub"): commit locally, then
+  `python tools/dev/publish_public.py "What changed" --push`. The script stops if the committed files contain the
+  local git email, its domain, the Windows user name or a Slack channel ID; fix those in the files and commit.
+- Keep out of the repo: song lyrics, recordings, model weights, personal paths. The mockups use placeholder lyrics.
 
 ## 7. Waiting for JP
 Listen to the pads · solo take with the E2 · Learn retest · turn off Maono/intelliGo capture effects · delete the
